@@ -2,7 +2,6 @@
 
 MDBHandler::MDBHandler()
 {
-
 }
 
 MDBHandler::~MDBHandler()
@@ -64,4 +63,15 @@ int MDBHandler::Menu()
 void MDBHandler::countUsers()
 {
     std::cout << coll.count_documents({}) << std::endl;
+}
+
+void MDBHandler::createAccount()
+{
+    /*auto builder = document{};
+    bsoncxx::document::value docValue = builder << "Name"<<
+                                                << "Surname"
+                                                << "PhoneNumber"
+                                                << "IBAN"
+                                                << "Sold" << bsoncxx::builder::stream::close_document
+                                                << bsoncxx::builder::stream::finalize; */
 }

@@ -44,6 +44,7 @@ private:
     mongocxx::database db;
     mongocxx::collection coll;
     void countUsers();
+    void createAccount();
 
 protected:
 };

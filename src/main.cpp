@@ -1,19 +1,20 @@
 #include <iostream>
-#include"MDBHandler.h"
+#include "Account.h"
 
+#include "MDBHandler.h"
 int main(int argc, char const *argv[])
 {
-    MDBHandler* Test= new MDBHandler();
-    while (!Test->testConnection())
-    {
+    // MDBHandler* Test= new MDBHandler();
+    // while (!Test->testConnection())
+    // {
 
-        
-    }
-    Test->Menu();
-    
+    // }
+    // Test->Menu();
 
+    Account *a=new Account();
+  //  a->setName();
 
-    
-    delete Test;
+    //  delete Test;
+    delete a;
     return 0;
 }
