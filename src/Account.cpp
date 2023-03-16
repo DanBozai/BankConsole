@@ -12,6 +12,30 @@ Account::~Account()
 {
 }
 
+std::string Account::getName()
+{
+    return Name;
+}
+
+std::string Account::getSurname()
+{
+    return Surname;
+}
+
+std::string Account::getPhoneNumber()
+{
+    return PhoneNumber;
+}
+
+std::string Account::getIBAN()
+{
+    return IBAN;
+}
+int Account::getSold()
+{
+    return Sold;
+}
+
 void Account::setName()
 {
     system("clear");
@@ -95,7 +119,7 @@ void Account::setPhoneNumber()
             isChar = false;
             system("clear");
 
-            std::cout << "Invalid input for phonenumber, please rewrite the phone number(only letters)\n";
+            std::cout << "Invalid input for phonenumber, please rewrite the phone number(only numbers)\n";
             tempPhoneNumber.clear();
         }
     } while (!isChar);
@@ -116,7 +140,7 @@ void Account::setIBAN()
         int randomNumber = distribution(gen);
         tempIBAN.push_back(char(randomNumber));
     }
-    tempIBAN = IBAN;
+    IBAN = tempIBAN;
 }
 
 void Account::setSold()

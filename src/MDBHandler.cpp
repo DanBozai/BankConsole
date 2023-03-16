@@ -52,6 +52,9 @@ int MDBHandler::Menu()
     case 1:
         countUsers();
         break;
+    case 2:
+    createAccount();
+        break;
 
     default:
         break;
@@ -67,11 +70,17 @@ void MDBHandler::countUsers()
 
 void MDBHandler::createAccount()
 {
-    /*auto builder = document{};
-    bsoncxx::document::value docValue = builder << "Name"<<
-                                                << "Surname"
-                                                << "PhoneNumber"
-                                                << "IBAN"
-                                                << "Sold" << bsoncxx::builder::stream::close_document
-                                                << bsoncxx::builder::stream::finalize; */
+    Account *UserAccount = new Account();
+
+    auto builder = document{};
+    bsoncxx::document::value docValue = builder << "Name" << UserAccount->getName()
+                                                << "Surname" << UserAccount->getSurname()
+                                                << "PhoneNumber" << UserAccount->getPhoneNumber()
+                                                << "IBAN" << UserAccount->getIBAN()
+                                                << "Sold" << UserAccount->getSold()
+                                                << bsoncxx::builder::stream::finalize;
+
+    coll.insert_one({docValue});
+    
+    delete UserAccount;
 }
