@@ -4,7 +4,7 @@
 #include "MDBHandler.h"
 int main(int argc, char const *argv[])
 {
-    // MDBHandler* Test= new MDBHandler();
+    // MDBHandler* Test= new MDBHandler();gi
     // while (!Test->testConnection())
     // {
 
