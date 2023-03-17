@@ -8,9 +8,9 @@ int main(int argc, char const *argv[])
     {
         
     }
-    Test->Menu();
+    Test->MainMenu();
 
-
-     delete Test;
+    
+    delete Test;
     return 0;
 }

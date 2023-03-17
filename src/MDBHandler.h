@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <mongocxx/cursor.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
@@ -36,7 +37,8 @@ public:
     mongocxx::instance inst{};
 
     bool testConnection();
-    int Menu();
+    int MainMenu();
+
 private:
     std::string account;
     std::string password;
@@ -46,12 +48,18 @@ private:
     mongocxx::database db;
     mongocxx::collection coll;
 
+    std::string SearchCrtMenu();
+
     void countUsers();
     void createAccount();
     void ModifyExistingAccount();
 
+    void printOneDocument(mongocxx::stdx::optional<bsoncxx::document::value> &document);
+
+    void printAllDoccuments();
+    bsoncxx::document::view_or_value filterSearch();
+
 protected:
 };
-
 
 #endif

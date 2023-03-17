@@ -1,5 +1,14 @@
 #include "MDBHandler.h"
 
+enum filterSearchENUM
+{
+    NameCrt = 1,
+    SurnameCrt,
+    PhoneNumberCrt,
+    IBANCrt,
+
+};
+
 MDBHandler::MDBHandler()
 {
 }
@@ -33,7 +42,7 @@ bool MDBHandler::testConnection()
     }
 }
 
-int MDBHandler::Menu()
+int MDBHandler::MainMenu()
 {
     int x;
     std::cout << "Menu Options:\n";
@@ -44,7 +53,8 @@ int MDBHandler::Menu()
     std::cout << "5. Add money to an account\n";
     std::cout << "5. Search account\n";
     std::cout << "6. Exit\n";
-    std::cout << "Type corresponding number to initiate a procedure:: ";
+    std::cout << "9.  print documents\n";
+    std::cout << "Type corresponding number to initiate a procedure: \n";
     int input;
     std::cin >> input;
     switch (input)
@@ -57,11 +67,49 @@ int MDBHandler::Menu()
         break;
     case 3:
         ModifyExistingAccount();
+        break;
+    case 9:
+        printAllDoccuments();
+        break;
     default:
         break;
     }
 
     return x;
+}
+
+std::string MDBHandler::SearchCrtMenu()
+{
+    int searchMenuInput;
+    std::string searchValue;
+
+    std::cout << "Search menu:\n";
+    std::cout << "1. Name\n";
+    std::cout << "2. Surname\n";
+    std::cout << "3. Phone Number\n";
+    std::cout << "4. IBAN\n";
+    std::cout << "Select a criteria to search:\n";
+    std::cin >> searchMenuInput;
+    switch (searchMenuInput)
+    {
+    case NameCrt:
+        searchValue = "Name";
+
+        break;
+    case SurnameCrt:
+        searchValue = "Surname";
+
+        break;
+    case PhoneNumberCrt:
+        searchValue = "PhoneNumber";
+        break;
+    case IBANCrt:
+        searchValue = "IBAN";
+
+    default:
+        break;
+    }
+    return searchValue;
 }
 
 void MDBHandler::countUsers()
@@ -87,31 +135,78 @@ void MDBHandler::createAccount()
 
 void MDBHandler::ModifyExistingAccount()
 {
-    std::string searchCrt = "";
-    std::string inputName="";
-    std::cout << "Type username to search: ";
-    std::cin >> searchCrt;
-    
-
-    std::cout<<"Type the value you want to change for Name: ";
-    std::cin>>inputName;
+    std::string modifiedInput = "";
     auto builder = document{};
-    
 
-    bsoncxx::document::view_or_value searchFilter = builder << "Name" << searchCrt << bsoncxx::builder::stream::finalize;
+    auto searchFilter = filterSearch();
 
-    bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
-                                                          << "Name"
-                                                          << inputName
-                                                          << bsoncxx::builder::stream::close_document
-                                                          << bsoncxx::builder::stream::finalize;
+    auto doc = coll.find_one(searchFilter.view());
 
-    try
+    if (doc)
     {
-        coll.update_one(searchFilter, updateData);
+        printOneDocument(doc);
+
+        std::cout << "Type the value you want to change for Name: ";
+        std::cin >> modifiedInput;
+
+        bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
+                                                              << "Name"
+                                                              << modifiedInput
+                                                              << bsoncxx::builder::stream::close_document
+                                                              << bsoncxx::builder::stream::finalize;
+
+        try
+        {
+            coll.update_one(searchFilter, updateData);
+        }
+        catch (const mongocxx::exception e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     }
-    catch (const mongocxx::exception e)
+    else
     {
-        std::cerr << e.what() << '\n';
+        std::cout << "No matching value for the search filter!\n";
     }
+}
+void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::value> &document)
+{
+
+    auto field1 = document->view()["Name"].get_string().value.to_string();
+    auto field2 = document->view()["Surname"].get_string().value.to_string();
+    auto field3 = document->view()["PhoneNumber"].get_string().value.to_string();
+    auto field4 = document->view()["Sold"].get_int32().value;
+    std::cout << "Name: " << field1 << std::endl;
+    std::cout << "Surname: " << field2 << std::endl;
+    std::cout << "Phone number: " << field3 << std::endl;
+    std::cout << "Sold: " << field4 << std::endl;
+}
+
+void MDBHandler::printAllDoccuments()
+{
+    auto find_one_filtered_result = coll.find_one(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("Name", "Iulia")));
+    auto cursor_all = coll.find({});
+    std::cout << "Collection " << coll.name() << " contains these documents:\n";
+
+    for (auto doc : cursor_all)
+    {
+        std::cout << bsoncxx::to_json(doc, bsoncxx::ExtendedJsonMode::k_relaxed) << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+bsoncxx::document::view_or_value MDBHandler::filterSearch()
+{
+    std::string searchCrt = SearchCrtMenu();
+    std::string valueToSearch = "";
+    std::cout << "search by: " << searchCrt << "\n";
+    std::cout << "input value: ";
+
+    std::cin >> valueToSearch;
+    std::cout << std::endl;
+    auto builder = document{};
+    bsoncxx::document::view_or_value searchFilter = builder << searchCrt
+                                                            << valueToSearch << bsoncxx::builder::stream::finalize;
+
+    return searchFilter;
 }
