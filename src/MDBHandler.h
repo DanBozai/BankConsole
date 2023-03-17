@@ -45,8 +45,10 @@ private:
     mongocxx::client conn;
     mongocxx::database db;
     mongocxx::collection coll;
+
     void countUsers();
     void createAccount();
+    void ModifyExistingAccount();
 
 protected:
 };

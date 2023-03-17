@@ -44,7 +44,7 @@ int MDBHandler::Menu()
     std::cout << "5. Add money to an account\n";
     std::cout << "5. Search account\n";
     std::cout << "6. Exit\n";
-    std::cout << "Type corespunding number to make a procedure: ";
+    std::cout << "Type corresponding number to initiate a procedure:: ";
     int input;
     std::cin >> input;
     switch (input)
@@ -53,9 +53,10 @@ int MDBHandler::Menu()
         countUsers();
         break;
     case 2:
-    createAccount();
+        createAccount();
         break;
-
+    case 3:
+        ModifyExistingAccount();
     default:
         break;
     }
@@ -81,6 +82,36 @@ void MDBHandler::createAccount()
                                                 << bsoncxx::builder::stream::finalize;
 
     coll.insert_one({docValue});
-    
     delete UserAccount;
+}
+
+void MDBHandler::ModifyExistingAccount()
+{
+    std::string searchCrt = "";
+    std::string inputName="";
+    std::cout << "Type username to search: ";
+    std::cin >> searchCrt;
+    
+
+    std::cout<<"Type the value you want to change for Name: ";
+    std::cin>>inputName;
+    auto builder = document{};
+    
+
+    bsoncxx::document::view_or_value searchFilter = builder << "Name" << searchCrt << bsoncxx::builder::stream::finalize;
+
+    bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
+                                                          << "Name"
+                                                          << inputName
+                                                          << bsoncxx::builder::stream::close_document
+                                                          << bsoncxx::builder::stream::finalize;
+
+    try
+    {
+        coll.update_one(searchFilter, updateData);
+    }
+    catch (const mongocxx::exception e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
