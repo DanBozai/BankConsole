@@ -49,6 +49,7 @@ private:
     mongocxx::collection coll;
 
     std::string SearchCrtMenu();
+    std::string SetMenu();
 
     void countUsers();
     void createAccount();
@@ -58,6 +59,7 @@ private:
 
     void printAllDoccuments();
     bsoncxx::document::view_or_value filterSearch();
+    void updateOneDocument(bsoncxx::document::view_or_value filterSearch);
 
 protected:
 };

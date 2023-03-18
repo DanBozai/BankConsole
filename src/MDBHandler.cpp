@@ -8,6 +8,13 @@ enum filterSearchENUM
     IBANCrt,
 
 };
+enum SetCrt
+{
+    setName = 1,
+    setSurename,
+    setPhoneNumber,
+    setIBAN
+};
 
 MDBHandler::MDBHandler()
 {
@@ -112,6 +119,34 @@ std::string MDBHandler::SearchCrtMenu()
     return searchValue;
 }
 
+std::string MDBHandler::SetMenu()
+{
+    int inputSetMenu = 0;
+    std::string setData = "";
+    std::cout << "Change information menu: \n";
+    std::cout << "Name\n";
+    std::cout << "Surname\n";
+    std::cout << "Phone number\n";
+
+    std::cin >> inputSetMenu;
+    switch (inputSetMenu)
+    {
+    case setName:
+        setData = "Name";
+        break;
+    case setSurename:
+        setData = "Surname";
+        break;
+    case setPhoneNumber:
+        setData = "PhoneNumber";
+        break;
+
+    default:
+        break;
+    }
+    return setData;
+}
+
 void MDBHandler::countUsers()
 {
     std::cout << coll.count_documents({}) << std::endl;
@@ -135,9 +170,6 @@ void MDBHandler::createAccount()
 
 void MDBHandler::ModifyExistingAccount()
 {
-    std::string modifiedInput = "";
-    auto builder = document{};
-
     auto searchFilter = filterSearch();
 
     auto doc = coll.find_one(searchFilter.view());
@@ -145,24 +177,7 @@ void MDBHandler::ModifyExistingAccount()
     if (doc)
     {
         printOneDocument(doc);
-
-        std::cout << "Type the value you want to change for Name: ";
-        std::cin >> modifiedInput;
-
-        bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
-                                                              << "Name"
-                                                              << modifiedInput
-                                                              << bsoncxx::builder::stream::close_document
-                                                              << bsoncxx::builder::stream::finalize;
-
-        try
-        {
-            coll.update_one(searchFilter, updateData);
-        }
-        catch (const mongocxx::exception e)
-        {
-            std::cerr << e.what() << '\n';
-        }
+        updateOneDocument(searchFilter);
     }
     else
     {
@@ -176,15 +191,15 @@ void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::va
     auto field2 = document->view()["Surname"].get_string().value.to_string();
     auto field3 = document->view()["PhoneNumber"].get_string().value.to_string();
     auto field4 = document->view()["Sold"].get_int32().value;
-    std::cout << "Name: " << field1 << std::endl;
-    std::cout << "Surname: " << field2 << std::endl;
-    std::cout << "Phone number: " << field3 << std::endl;
-    std::cout << "Sold: " << field4 << std::endl;
+    std::cout << "1. Name: " << field1 << std::endl;
+    std::cout << "2. Surname: " << field2 << std::endl;
+    std::cout << "3. Phone number: " << field3 << std::endl;
+    std::cout << "4. Sold: " << field4 << std::endl;
 }
 
 void MDBHandler::printAllDoccuments()
 {
-    auto find_one_filtered_result = coll.find_one(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("Name", "Iulia")));
+    auto find_one_filtered_result = coll.find_one(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("Name", 1)));
     auto cursor_all = coll.find({});
     std::cout << "Collection " << coll.name() << " contains these documents:\n";
 
@@ -209,4 +224,43 @@ bsoncxx::document::view_or_value MDBHandler::filterSearch()
                                                             << valueToSearch << bsoncxx::builder::stream::finalize;
 
     return searchFilter;
+}
+
+void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch)
+{
+    auto builder = document{};
+    std::string modifiedInput = "";
+    std::string setKey = SetMenu();
+
+    if (!setKey.empty())
+    {
+        std::cout << "Type the value you want to change for "<<setKey<<": ";
+        std::cin >> modifiedInput;
+
+        bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
+                                                              << setKey
+                                                              << modifiedInput
+                                                              << bsoncxx::builder::stream::close_document
+                                                              << bsoncxx::builder::stream::finalize;
+        if (filterSearch.is_owning())
+        {
+
+            try
+            {
+                coll.update_one(filterSearch, updateData);
+            }
+            catch (const mongocxx::exception e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+        else
+        {
+            std::cout << "Filter search don`t have ownig values\n";
+        }
+    }
+    else
+    {
+        std::cout << "Set key value empty\n";
+    }
 }
