@@ -75,6 +75,9 @@ int MDBHandler::MainMenu()
     case 3:
         ModifyExistingAccount();
         break;
+    case 5:
+        searchAccount();
+        break;
     case 9:
         printAllDoccuments();
         break;
@@ -124,9 +127,9 @@ std::string MDBHandler::SetMenu()
     int inputSetMenu = 0;
     std::string setData = "";
     std::cout << "Change information menu: \n";
-    std::cout << "Name\n";
-    std::cout << "Surname\n";
-    std::cout << "Phone number\n";
+    std::cout << "1.Name\n";
+    std::cout << "2.Surname\n";
+    std::cout << "3.Phone number\n";
 
     std::cin >> inputSetMenu;
     switch (inputSetMenu)
@@ -210,6 +213,14 @@ void MDBHandler::printAllDoccuments()
     std::cout << std::endl;
 }
 
+void MDBHandler::printDocument(bsoncxx::v_noabi::document::view& document)
+{
+    auto Name =document["Name"].get_string().value.to_string();
+    auto Surname=document["Surname"].get_string().value.to_string();
+
+    std::cout<< Name<<" "<<Surname<<std::endl;
+}
+
 bsoncxx::document::view_or_value MDBHandler::filterSearch()
 {
     std::string searchCrt = SearchCrtMenu();
@@ -234,7 +245,7 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
 
     if (!setKey.empty())
     {
-        std::cout << "Type the value you want to change for "<<setKey<<": ";
+        std::cout << "Type the value you want to change for " << setKey << ": ";
         std::cin >> modifiedInput;
 
         bsoncxx::document::view_or_value updateData = builder << "$set" << bsoncxx::builder::stream::open_document
@@ -248,6 +259,7 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
             try
             {
                 coll.update_one(filterSearch, updateData);
+                std::cout << "Document updated succesfully\n";
             }
             catch (const mongocxx::exception e)
             {
@@ -262,5 +274,15 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
     else
     {
         std::cout << "Set key value empty\n";
+    }
+}
+
+void MDBHandler::searchAccount()
+{
+    auto builder = document{};
+    auto cursor_filtered = coll.find(make_document(kvp("Sold", make_document(kvp("$gte", 0), kvp("$lte", 22000) ))));
+    for (auto doc : cursor_filtered)
+    {
+        printDocument(doc);
     }
 }

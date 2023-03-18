@@ -27,6 +27,8 @@ using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
 using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
+using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::make_document;
 
 class MDBHandler
 {
@@ -58,8 +60,14 @@ private:
     void printOneDocument(mongocxx::stdx::optional<bsoncxx::document::value> &document);
 
     void printAllDoccuments();
+    /// @brief print document with
+    /// @param document 
+    void printDocument(bsoncxx::v_noabi::document::view &document);
     bsoncxx::document::view_or_value filterSearch();
     void updateOneDocument(bsoncxx::document::view_or_value filterSearch);
+
+
+    void searchAccount();
 
 protected:
 };
