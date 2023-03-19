@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unistd.h>
 #include <mongocxx/cursor.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
@@ -21,14 +22,14 @@
 #include <bsoncxx/builder/stream/array.hpp>
 
 #include "Account.h"
+using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::make_document;
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
 using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
-using bsoncxx::builder::basic::kvp;
-using bsoncxx::builder::basic::make_document;
 
 class MDBHandler
 {
@@ -42,8 +43,7 @@ public:
     int MainMenu();
 
 private:
-    std::string account;
-    std::string password;
+    
     std::string uri_string;
     mongocxx::uri uri;
     mongocxx::client conn;
@@ -61,13 +61,14 @@ private:
 
     void printAllDoccuments();
     /// @brief print document with
-    /// @param document 
+    /// @param document
     void printDocument(bsoncxx::v_noabi::document::view &document);
     bsoncxx::document::view_or_value filterSearch();
     void updateOneDocument(bsoncxx::document::view_or_value filterSearch);
 
-
     void searchAccount();
+
+    void pause();
 
 protected:
 };

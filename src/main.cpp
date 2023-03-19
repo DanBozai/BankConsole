@@ -1,16 +1,19 @@
 #include <iostream>
+#include <stdio.h>
+
 
 #include "MDBHandler.h"
+
 int main(int argc, char const *argv[])
 {
-    MDBHandler* Test= new MDBHandler();
-    while (!Test->testConnection())
-    {
-        
-    }
-    Test->MainMenu();
+        MDBHandler* Test= new MDBHandler();
+        while (!Test->testConnection())
+        {
 
-    
-    delete Test;
+        }
+       // Test->MainMenu();
+        while(Test->MainMenu()!=7);
+
+        delete Test;
     return 0;
 }
