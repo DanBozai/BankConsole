@@ -52,7 +52,7 @@ private:
 
     std::string SearchCrtMenu();
     std::string SetMenu();
-
+    mongocxx::v_noabi::cursor MenuSearchFilter();
     void countUsers();
     void createAccount();
     void ModifyExistingAccount();
@@ -64,6 +64,7 @@ private:
     /// @param document
     void printDocument(bsoncxx::v_noabi::document::view &document);
     bsoncxx::document::view_or_value filterSearch();
+    bsoncxx::v_noabi::document::value documentValue(std::string key);
     void updateOneDocument(bsoncxx::document::view_or_value filterSearch);
 
     void searchAccount();

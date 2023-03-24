@@ -16,20 +16,20 @@ public:
     std::string getSurname();
     std::string getPhoneNumber();
     std::string getIBAN();
-    int getSold();
+    int getAccountBalance();
 
 private:
     std::string Name = "";
     std::string Surname = "";
     std::string PhoneNumber = "";
     std::string IBAN = "";
-    unsigned int Sold = 0;
+    unsigned int AccountBalance = 0;
 
     void setName();
     void setSurname();
     void setPhoneNumber();
     void setIBAN();
-    void setSold();
+    void setAccountBalance();
 
     bool checkStringLetters(const std::string &tempString);
     bool checkStringNumbers(const std::string &tempString);

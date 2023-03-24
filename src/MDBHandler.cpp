@@ -13,7 +13,8 @@ enum SetCrt
     setName = 1,
     setSurename,
     setPhoneNumber,
-    setIBAN
+    setIBAN,
+    setAccountBalance
 };
 
 MDBHandler::MDBHandler()
@@ -91,7 +92,6 @@ int MDBHandler::MainMenu()
         break;
 
     case 4:
-        // delete
         system("clear");
         pause();
         break;
@@ -158,7 +158,7 @@ std::string MDBHandler::SearchCrtMenu()
         break;
 
     default:
-        break;
+    throw std::runtime_error("Invalid case for searchCrtMenu");
     }
     return searchValue;
 }
@@ -166,29 +166,92 @@ std::string MDBHandler::SearchCrtMenu()
 std::string MDBHandler::SetMenu()
 {
     int inputSetMenu = 0;
-    std::string setData = "";
-    std::cout << "Change information menu: \n";
-    std::cout << "1.Name\n";
-    std::cout << "2.Surname\n";
-    std::cout << "3.Phone number\n";
+    std::string setKey = "";
+    std::cout << "Select menu: \n";
+    std::cout << "1. Name\n";
+    std::cout << "2. Surname\n";
+    std::cout << "3. Phone number\n";
+    std::cout << "4. IBAN\n";
+
+    std::cout << "5. Account Ballance\n";
 
     std::cin >> inputSetMenu;
     switch (inputSetMenu)
     {
     case setName:
-        setData = "Name";
+        setKey = "Name";
         break;
     case setSurename:
-        setData = "Surname";
+        setKey = "Surname";
         break;
     case setPhoneNumber:
-        setData = "PhoneNumber";
+        setKey = "PhoneNumber";
         break;
-
+        case setIBAN:
+        setKey="IBAN";
+        break;
+    case setAccountBalance:
+        setKey = "AccountBalance";
+        
     default:
         break;
     }
-    return setData;
+    return setKey;
+}
+
+mongocxx::v_noabi::cursor MDBHandler::MenuSearchFilter()
+{
+    unsigned int menuOptions;
+    std::string searchKey = SetMenu();
+
+
+    auto doc = documentValue(searchKey);
+    auto cursor_filtered = coll.find(make_document(kvp(searchKey, doc)));
+
+    return cursor_filtered;
+}
+bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string key)
+{
+
+    if (key == "Name" || key == "Surname" || key == "PhoneNumber" || key == "IBAN")
+    {
+        std::string searchInputValue = "";
+        std::cout << "search by: " << key << ": ";
+        std::cin >> searchInputValue;
+
+        return make_document(kvp("$eq", searchInputValue));
+    }
+    else if (key == "AccountBalance")
+    {
+        int AccountBalance = 0;
+
+        unsigned int menuOptions = 0;
+        const std::string keyOperator[5] = {"$eq", "$gt", "$gte", "$lt", "$lte"};
+
+        std::cout << "Search Account balance criteria menu:\n";
+        std::cout << "1. Equal value (=)\n";
+        std::cout << "2. Greater than value (>)\n";
+        std::cout << "3. Greater than equal value (=>)\n";
+        std::cout << "4. Lesser than value (<=)\n";
+        std::cout << "5. Lesser than equal value (<=)\n";
+        std::cin >> menuOptions;
+        if (menuOptions >= 0 && menuOptions <= 5)
+        {
+            std::cout << "search by " << key << " value: ";
+            std::cin >> AccountBalance;
+            return make_document(kvp(keyOperator[menuOptions - 1], AccountBalance));
+        }
+        else
+        {
+            throw std::runtime_error("Invalid $ operator ");
+        }
+
+    }
+
+    else
+    {
+        throw std::runtime_error("Invalid key parameter: " + key);
+    }
 }
 
 void MDBHandler::countUsers()
@@ -205,7 +268,7 @@ void MDBHandler::createAccount()
                                                 << "Surname" << UserAccount->getSurname()
                                                 << "PhoneNumber" << UserAccount->getPhoneNumber()
                                                 << "IBAN" << UserAccount->getIBAN()
-                                                << "Sold" << UserAccount->getSold()
+                                                << "AccountBalance" << UserAccount->getAccountBalance()
                                                 << bsoncxx::builder::stream::finalize;
 
     coll.insert_one({docValue});
@@ -234,11 +297,11 @@ void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::va
     auto field1 = document->view()["Name"].get_string().value.to_string();
     auto field2 = document->view()["Surname"].get_string().value.to_string();
     auto field3 = document->view()["PhoneNumber"].get_string().value.to_string();
-    auto field4 = document->view()["Sold"].get_int32().value;
+    auto field4 = document->view()["AccountBalance"].get_int32().value;
     std::cout << "1. Name: " << field1 << std::endl;
     std::cout << "2. Surname: " << field2 << std::endl;
     std::cout << "3. Phone number: " << field3 << std::endl;
-    std::cout << "4. Sold: " << field4 << std::endl;
+    std::cout << "4. AccountBalance: " << field4 << std::endl;
 }
 /// @brief Print all documents in JSON format
 void MDBHandler::printAllDoccuments()
@@ -260,8 +323,9 @@ void MDBHandler::printDocument(bsoncxx::v_noabi::document::view &document)
     auto Surname = document["Surname"].get_string().value.to_string();
     auto phoneNum = document["PhoneNumber"].get_string().value.to_string();
     auto IBAN = document["IBAN"].get_string().value.to_string();
+    auto AccBalance = document["AccountBalance"].get_int32();
 
-    std::cout << Name << " " << Surname << " " << phoneNum << " " << IBAN << std::endl;
+    std::cout << Name << " " << Surname << " " << phoneNum << " " << IBAN <<" Account balance:"<<AccBalance<<"$"<< std::endl;
 }
 
 bsoncxx::document::view_or_value MDBHandler::filterSearch()
@@ -322,11 +386,13 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
 
 void MDBHandler::searchAccount()
 {
-    auto builder = document{};
-    auto cursor_filtered = coll.find(make_document(kvp("Sold", make_document(kvp("$gte", 0), kvp("$lte", 22000)))));
+
+    // auto cursor_filtered = coll.find(make_document(kvp("AccountBalance", make_document(kvp("$gte", 0), kvp("$lte", 22000)))));
+    auto cursorFiltered = MenuSearchFilter();
+
     unsigned int countDocuments = 0;
 
-    for (auto doc : cursor_filtered)
+    for (auto doc : cursorFiltered)
     {
 
         ++countDocuments;

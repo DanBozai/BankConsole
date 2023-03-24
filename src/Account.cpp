@@ -31,9 +31,9 @@ std::string Account::getIBAN()
 {
     return IBAN;
 }
-int Account::getSold()
+int Account::getAccountBalance()
 {
-    return Sold;
+    return AccountBalance;
 }
 
 void Account::setName()
@@ -143,7 +143,7 @@ void Account::setIBAN()
     IBAN = tempIBAN;
 }
 
-void Account::setSold()
+void Account::setAccountBalance()
 {
     int input = 0;
     std::cout << "1. Add balance\n";
@@ -152,16 +152,16 @@ void Account::setSold()
     {
     case 1:
         std::cout << "Enter the amount of money you want to add: \n";
-        std::cin >> Sold;
+        std::cin >> AccountBalance;
         break;
 
     default:
-        Sold = 0;
-        std::cout << "Sold =" << Sold << std::endl;
+        AccountBalance = 0;
+        std::cout << "AccountBalance =" << AccountBalance << std::endl;
 
         break;
     }
-    std::cin >> Sold;
+    std::cin >> AccountBalance;
 }
 
 bool Account::checkStringLetters(const std::string &tempString)
