@@ -50,8 +50,7 @@ private:
     mongocxx::database db;
     mongocxx::collection coll;
 
-    std::string SearchCrtMenu();
-    std::string SetMenu();
+   
     mongocxx::v_noabi::cursor MenuSearchFilter();
     void countUsers();
     void createAccount();

@@ -8,6 +8,11 @@ Account::Account()
     setIBAN();
 }
 
+Account::Account(std::string p)
+{
+    setIBAN();
+}
+
 Account::~Account()
 {
 }
@@ -127,20 +132,8 @@ void Account::setPhoneNumber()
 
 void Account::setIBAN()
 {
-    std::string tempIBAN = "ROITSCHOOL";
-    unsigned int randomNumberSize = 15;
-    std::random_device randomDevice;
-
-    std::mt19937 gen(randomDevice());
-
-    std::uniform_int_distribution<> distribution(48, 57);
-
-    for (int i = 0; i < 15; i++)
-    {
-        int randomNumber = distribution(gen);
-        tempIBAN.push_back(char(randomNumber));
-    }
-    IBAN = tempIBAN;
+    
+    IBAN = generateIBAN();
 }
 
 void Account::setAccountBalance()

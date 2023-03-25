@@ -40,7 +40,7 @@ bool MDBHandler::testConnection()
     coll = db.collection("Users");
     try
     {
-        auto server_status = conn["admin"].run_command(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ping", 1)));
+        auto server_status = conn["admin"].run_command(make_document(kvp("ping", 1)));
         std::cout << "Connection successful!" << std::endl;
         uri_string.clear();
         account.clear();
@@ -127,83 +127,9 @@ int MDBHandler::MainMenu()
     return x;
 }
 
-std::string MDBHandler::SearchCrtMenu()
-{
-    int searchMenuInput;
-    std::string searchValue;
-
-    std::cout << "Search menu:\n";
-    std::cout << "1. Name\n";
-    std::cout << "2. Surname\n";
-    std::cout << "3. Phone Number\n";
-    std::cout << "4. IBAN\n";
-    std::cout << "Select a criteria to search:\n";
-    std::cin >> searchMenuInput;
-    switch (searchMenuInput)
-    {
-    case NameCrt:
-        searchValue = "Name";
-        break;
-
-    case SurnameCrt:
-        searchValue = "Surname";
-        break;
-
-    case PhoneNumberCrt:
-        searchValue = "PhoneNumber";
-        break;
-
-    case IBANCrt:
-        searchValue = "IBAN";
-        break;
-
-    default:
-    throw std::runtime_error("Invalid case for searchCrtMenu");
-    }
-    return searchValue;
-}
-
-std::string MDBHandler::SetMenu()
-{
-    int inputSetMenu = 0;
-    std::string setKey = "";
-    std::cout << "Select menu: \n";
-    std::cout << "1. Name\n";
-    std::cout << "2. Surname\n";
-    std::cout << "3. Phone number\n";
-    std::cout << "4. IBAN\n";
-
-    std::cout << "5. Account Ballance\n";
-
-    std::cin >> inputSetMenu;
-    switch (inputSetMenu)
-    {
-    case setName:
-        setKey = "Name";
-        break;
-    case setSurename:
-        setKey = "Surname";
-        break;
-    case setPhoneNumber:
-        setKey = "PhoneNumber";
-        break;
-        case setIBAN:
-        setKey="IBAN";
-        break;
-    case setAccountBalance:
-        setKey = "AccountBalance";
-        
-    default:
-        break;
-    }
-    return setKey;
-}
-
 mongocxx::v_noabi::cursor MDBHandler::MenuSearchFilter()
 {
-    unsigned int menuOptions;
-    std::string searchKey = SetMenu();
-
+    std::string searchKey = getKeyName(viewKyes);
 
     auto doc = documentValue(searchKey);
     auto cursor_filtered = coll.find(make_document(kvp(searchKey, doc)));
@@ -245,7 +171,6 @@ bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string ke
         {
             throw std::runtime_error("Invalid $ operator ");
         }
-
     }
 
     else
@@ -269,6 +194,8 @@ void MDBHandler::createAccount()
                                                 << "PhoneNumber" << UserAccount->getPhoneNumber()
                                                 << "IBAN" << UserAccount->getIBAN()
                                                 << "AccountBalance" << UserAccount->getAccountBalance()
+                                                << "AccountStatus"
+                                                << "active"
                                                 << bsoncxx::builder::stream::finalize;
 
     coll.insert_one({docValue});
@@ -294,14 +221,14 @@ void MDBHandler::ModifyExistingAccount()
 void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::value> &document)
 {
 
-    auto field1 = document->view()["Name"].get_string().value.to_string();
-    auto field2 = document->view()["Surname"].get_string().value.to_string();
-    auto field3 = document->view()["PhoneNumber"].get_string().value.to_string();
-    auto field4 = document->view()["AccountBalance"].get_int32().value;
-    std::cout << "1. Name: " << field1 << std::endl;
-    std::cout << "2. Surname: " << field2 << std::endl;
-    std::cout << "3. Phone number: " << field3 << std::endl;
-    std::cout << "4. AccountBalance: " << field4 << std::endl;
+    auto Name = document->view()["Name"].get_string().value.to_string();
+    auto Surname = document->view()["Surname"].get_string().value.to_string();
+    auto PhoneNumber = document->view()["PhoneNumber"].get_string().value.to_string();
+    auto AccountBalance = document->view()["AccountBalance"].get_int32().value;
+    std::cout << "1. Name: " << Name << std::endl;
+    std::cout << "2. Surname: " << Surname << std::endl;
+    std::cout << "3. Phone number: " << PhoneNumber << std::endl;
+    std::cout << "4. AccountBalance: " << AccountBalance << "$" << std::endl;
 }
 /// @brief Print all documents in JSON format
 void MDBHandler::printAllDoccuments()
@@ -321,16 +248,18 @@ void MDBHandler::printDocument(bsoncxx::v_noabi::document::view &document)
 {
     auto Name = document["Name"].get_string().value.to_string();
     auto Surname = document["Surname"].get_string().value.to_string();
+    auto ID = document["ID"].get_string().value.to_string();
     auto phoneNum = document["PhoneNumber"].get_string().value.to_string();
     auto IBAN = document["IBAN"].get_string().value.to_string();
     auto AccBalance = document["AccountBalance"].get_int32();
-
-    std::cout << Name << " " << Surname << " " << phoneNum << " " << IBAN <<" Account balance:"<<AccBalance<<"$"<< std::endl;
+    std::cout << Name << " " << Surname << " ID:" << ID << " " << phoneNum << " " << IBAN << " Account balance:" << AccBalance << "$" << std::endl;
 }
 
 bsoncxx::document::view_or_value MDBHandler::filterSearch()
 {
-    std::string searchCrt = SearchCrtMenu();
+    std::cout<<"Select the search criteria"<<std::endl;
+
+    std::string searchCrt = getKeyName(viewKyes);
     std::string valueToSearch = "";
     std::cout << "search by: " << searchCrt << "\n";
     std::cout << "input value: ";
@@ -348,9 +277,11 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
 {
     auto builder = document{};
     std::string modifiedInput = "";
-    std::string setKey = SetMenu();
 
-    if (!setKey.empty())
+    std::cout << "Select the account information to bind a new modification" << std::endl;
+    std::string setKey = getKeyName(editableKeyPair);
+
+    if (!setKey.empty()&& setKey!="AccountBalance")
     {
         std::cout << "Type the value you want to change for " << setKey << ": ";
         std::cin >> modifiedInput;
@@ -366,7 +297,7 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
             try
             {
                 coll.update_one(filterSearch, updateData);
-                std::cout << "Document updated succesfully\n";
+                std::cout << "Document user "<< setKey<<": "<< modifiedInput<<" updated succesfully\n";
             }
             catch (const mongocxx::exception e)
             {
@@ -375,13 +306,10 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
         }
         else
         {
-            std::cout << "Filter search don`t have ownig values\n";
+            std::cout << "The search filter does not have own values\n";
         }
     }
-    else
-    {
-        std::cout << "Set key value empty\n";
-    }
+    
 }
 
 void MDBHandler::searchAccount()

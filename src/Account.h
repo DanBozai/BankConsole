@@ -4,12 +4,13 @@
 #pragma once
 #include <string>
 #include <iostream>
-#include <random>
+#include "Misc.h"
 
 class Account
 {
 public:
     Account();
+    Account(std::string p);
     ~Account();
 
     std::string getName();
