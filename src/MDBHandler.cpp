@@ -10,8 +10,9 @@ MDBHandler::~MDBHandler()
 
 bool MDBHandler::testConnection()
 {
-
+    // prompt user to introduce the user account
     std::string account = getpass("Enter username account\n");
+    // prompt user to introduce the user account
     std::string password = getpass("Enter password account\n");
 
     uri_string = "mongodb+srv://" + account + ":" + password + "@cluster0.vyxv6f7.mongodb.net/test";
@@ -39,9 +40,11 @@ bool MDBHandler::testConnection()
         return false;
     }
 }
-
+/// @brief all the options method 
+/// @return an int value used to exit 
 int MDBHandler::MainMenu()
-{
+{   
+    // temp int(used to exit the menu and terminate the program)
     int x;
     std::cout << "Menu Options:\n";
     std::cout << "1. Number of accounts\n";
@@ -51,7 +54,7 @@ int MDBHandler::MainMenu()
     std::cout << "5. Add money to an account\n";
     std::cout << "6. Search account\n";
     std::cout << "7. Exit\n";
-    std::cout << "9. Print documents\n";
+    std::cout << "8. Print documents\n";
     std::cout << "Type corresponding number to initiate a procedure: \n";
     int input;
     std::cin >> input;
@@ -100,7 +103,7 @@ int MDBHandler::MainMenu()
         conn.reset();
         break;
 
-    case 9:
+    case 8:
         system("clear");
         printAllDoccuments();
         pause();
@@ -111,7 +114,8 @@ int MDBHandler::MainMenu()
 
     return x;
 }
-
+/// @brief 
+/// @return mongocxx::v_noabi::cursor 
 mongocxx::v_noabi::cursor MDBHandler::MenuSearchFilter()
 {
     std::string searchKey = getKeyName(viewKyes);
@@ -121,9 +125,12 @@ mongocxx::v_noabi::cursor MDBHandler::MenuSearchFilter()
 
     return cursor_filtered;
 }
+/// @brief bsoncxx::v_noabi::document::value to create document for the collection.find() method
+/// @param key used for decisional instruction to separate the document value keys and ioeratir
+/// @return value document based on user prompt options
 bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string key)
 {
-
+    // for the personal user data $eq will find exactly the pair 
     if (key == "Name" || key == "Surname" || key == "PhoneNumber" || key == "IBAN")
     {
         std::string searchInputValue = "";
@@ -132,6 +139,7 @@ bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string ke
 
         return make_document(kvp("$eq", searchInputValue));
     }
+    
     else if (key == "AccountBalance")
     {
         int AccountBalance = 0;
@@ -150,10 +158,12 @@ bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string ke
         {
             std::cout << "search by " << key << " value: ";
             std::cin >> AccountBalance;
+            // menuOptions-1 to match the array keyOperator
             return make_document(kvp(keyOperator[menuOptions - 1], AccountBalance));
         }
         else
         {
+            // if the user prompt another input that does not exist
             throw std::runtime_error("Invalid $ operator ");
         }
     }
@@ -163,12 +173,12 @@ bsoncxx::v_noabi::document::value MDBHandler::documentValue(const std::string ke
         throw std::runtime_error("Invalid key parameter: " + key);
     }
 }
-
+/// @brief display the collection name and counted documents in the collection
 void MDBHandler::countUsers()
 {
     std::cout << coll.name() << " database collection contains " << coll.count_documents({}) << " documents" << std::endl;
 }
-
+/// @brief Create a new user account with the corresponding database keys(This MDBHandler method use an instance of an Account object) and insert the document in the database collection
 void MDBHandler::createAccount()
 {
     Account *UserAccount = new Account();
@@ -195,7 +205,9 @@ void MDBHandler::ModifyExistingAccount()
 
     if (doc)
     {
+        // display the found document 
         printOneDocument(doc);
+        //update the found document with the users prompt
         updateOneDocument(searchFilter);
     }
     else
@@ -203,6 +215,8 @@ void MDBHandler::ModifyExistingAccount()
         std::cout << "No matching value for the search filter!\n";
     }
 }
+/// @brief print the pairs of Name Surname PhoneNumber and AccountBalance keys
+/// @param document 
 void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::value> &document)
 {
 
@@ -218,7 +232,7 @@ void MDBHandler::printOneDocument(mongocxx::stdx::optional<bsoncxx::document::va
 /// @brief Print all documents in JSON format
 void MDBHandler::printAllDoccuments()
 {
-    auto find_one_filtered_result = coll.find_one(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("Name", 1)));
+    auto find_one_filtered_result = coll.find_one(make_document(kvp("Name", 1)));
     auto cursor_all = coll.find({});
     std::cout << "Collection " << coll.name() << " contains these documents:\n";
 
@@ -228,7 +242,8 @@ void MDBHandler::printAllDoccuments()
     }
     std::cout << std::endl;
 }
-
+/// @brief display the document information
+/// @param document reference to the founded document
 void MDBHandler::printDocument(bsoncxx::v_noabi::document::view &document)
 {
     auto Name = document["Name"].get_string().value.to_string();
@@ -239,7 +254,8 @@ void MDBHandler::printDocument(bsoncxx::v_noabi::document::view &document)
     auto AccBalance = document["AccountBalance"].get_int32();
     std::cout << Name << " " << Surname << " ID:" << ID << " " << phoneNum << " " << IBAN << " Account balance:" << AccBalance << "$" << std::endl;
 }
-
+/// @brief method who call the getKeyName to select and search a value provided by the user
+/// @return bsoncxx::document::view_or_value with the prompt user input
 bsoncxx::document::view_or_value MDBHandler::filterSearch()
 {
     std::cout << "Select the search criteria" << std::endl;
@@ -257,7 +273,8 @@ bsoncxx::document::view_or_value MDBHandler::filterSearch()
 
     return searchFilter;
 }
-
+/// @brief update one document based on the filter document
+/// @param filterSearch bsoncxx document view or value
 void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch)
 {
     auto builder = document{};
@@ -313,7 +330,7 @@ void MDBHandler::searchAccount()
     }
     std::cout << countDocuments << " documents match the search filter\n";
 }
-
+/// @brief delete a collection document base on the user personal ID key
 void MDBHandler::deleteAccount()
 {
     std::cout << "Please provide the personal ID account for the delete method\n";
@@ -347,13 +364,13 @@ void MDBHandler::deleteAccount()
         }
     }
 }
-
+/// @brief add ballance to an account based on the user personal ID key
 void MDBHandler::addBallanceToAccount()
 {
     std::string inputId = "";
     int balanceValueInput = 0;
     int menuOptions = 0;
-    std::cout<<"For this method please provide the user personal ID\n";
+    std::cout << "Please provide the user personal ID\n";
     std::cin >> inputId;
 
     auto cursorFilter = coll.find(make_document(kvp("ID", inputId)));
@@ -361,6 +378,7 @@ void MDBHandler::addBallanceToAccount()
     {
 
         printDocument(it);
+        auto AccBalance = it["AccountBalance"].get_int32();
         std::cout << "Do you want to add money to this account?" << std::endl;
         std::cout << "1. Yes\n";
         std::cout << "2. No\n";
@@ -368,10 +386,10 @@ void MDBHandler::addBallanceToAccount()
         switch (menuOptions)
         {
         case 1:
-            std::cout<<"Type value to add money\n";
-            std::cin >>balanceValueInput;
+            std::cout << "Type value to add money\n";
+            std::cin >> balanceValueInput;
 
-              coll.update_one(it, make_document(kvp("$set", make_document(kvp("AccountBalance", balanceValueInput)))));
+            coll.update_one(it, make_document(kvp("$set", make_document(kvp("AccountBalance", AccBalance+balanceValueInput)))));
 
             break;
         case 2:
@@ -382,7 +400,7 @@ void MDBHandler::addBallanceToAccount()
         }
     }
 }
-
+/// @brief cin.get and system("clear")
 void MDBHandler::pause()
 {
     {

@@ -6,14 +6,6 @@
 #include <string>
 #include <random>
 
-// enum dbKeyName
-// {
-//     NameKey=1,
-//     SurnameKey,
-//     PhoneNumberKey,
-//     IDKey,
-//     IBANKey
-// };
 
 enum AccesKeyName
 {

@@ -1,5 +1,6 @@
 #include "Misc.h"
-
+/// @brief IBAN Generator
+/// @return "ROITSCHOOL"+ "14 random int converted to char "
 std::string generateIBAN()
 {
     std::string tempIBAN = "ROITSCHOOL";
@@ -17,7 +18,9 @@ std::string generateIBAN()
     }
     return tempIBAN;
 }
-
+/// @brief string function to get all the database Key and display the option menu (this function contain a keyName array(Name", "Surname", "PhoneNumber", "ID", "AccountBalance","IBAN"))
+/// @param getKeyAccess const int parameter (Enum AccesKeyName editableKeyPair=4,  viewKyes=6) to interact in certain conditions with some functions 
+/// @return string key
 std::string getKeyName(const int getKeyAccess)
 {
     std::string keyNameArr[6] = {"Name", "Surname", "PhoneNumber", "ID", "AccountBalance","IBAN"};
