@@ -1,22 +1,5 @@
 #include "MDBHandler.h"
 
-enum filterSearchENUM
-{
-    NameCrt = 1,
-    SurnameCrt,
-    PhoneNumberCrt,
-    IBANCrt,
-
-};
-enum SetCrt
-{
-    setName = 1,
-    setSurename,
-    setPhoneNumber,
-    setIBAN,
-    setAccountBalance
-};
-
 MDBHandler::MDBHandler()
 {
 }
@@ -93,11 +76,13 @@ int MDBHandler::MainMenu()
 
     case 4:
         system("clear");
+        deleteAccount();
         pause();
         break;
 
     case 5:
         system("clear");
+        addBallanceToAccount();
         pause();
         break;
 
@@ -257,7 +242,7 @@ void MDBHandler::printDocument(bsoncxx::v_noabi::document::view &document)
 
 bsoncxx::document::view_or_value MDBHandler::filterSearch()
 {
-    std::cout<<"Select the search criteria"<<std::endl;
+    std::cout << "Select the search criteria" << std::endl;
 
     std::string searchCrt = getKeyName(viewKyes);
     std::string valueToSearch = "";
@@ -281,7 +266,7 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
     std::cout << "Select the account information to bind a new modification" << std::endl;
     std::string setKey = getKeyName(editableKeyPair);
 
-    if (!setKey.empty()&& setKey!="AccountBalance")
+    if (!setKey.empty() && setKey != "AccountBalance")
     {
         std::cout << "Type the value you want to change for " << setKey << ": ";
         std::cin >> modifiedInput;
@@ -297,7 +282,7 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
             try
             {
                 coll.update_one(filterSearch, updateData);
-                std::cout << "Document user "<< setKey<<": "<< modifiedInput<<" updated succesfully\n";
+                std::cout << "Document user " << setKey << ": " << modifiedInput << " updated succesfully\n";
             }
             catch (const mongocxx::exception e)
             {
@@ -309,7 +294,6 @@ void MDBHandler::updateOneDocument(bsoncxx::document::view_or_value filterSearch
             std::cout << "The search filter does not have own values\n";
         }
     }
-    
 }
 
 void MDBHandler::searchAccount()
@@ -328,6 +312,75 @@ void MDBHandler::searchAccount()
         printDocument(doc);
     }
     std::cout << countDocuments << " documents match the search filter\n";
+}
+
+void MDBHandler::deleteAccount()
+{
+    std::cout << "Please provide the personal ID account for the delete method\n";
+    std::string inputID = "";
+    std::cin >> inputID;
+    bsoncxx::v_noabi::document::view_or_value idSearchFilter = make_document(kvp("ID", inputID), kvp("AccountStatus", "active"));
+    mongocxx::v_noabi::cursor docfind = coll.find(idSearchFilter);
+    for (auto it : docfind)
+    {
+        printDocument(it);
+        unsigned int menuOption = 0;
+
+        std::cout << "Do you want to delete this account?" << std::endl;
+        std::cout << "1.Yes\n";
+        std::cout << "2.No\n";
+        std::cin >> menuOption;
+        switch (menuOption)
+        {
+        case 1:
+            printDocument(it);
+            coll.delete_one(it);
+            std::cout << "User document deleted successfully\n";
+
+            break;
+        case 2:
+            std::cout << "Delete method exit\n";
+
+            break;
+        default:
+            throw std::runtime_error("Invalid input for the delete options menu;");
+        }
+    }
+}
+
+void MDBHandler::addBallanceToAccount()
+{
+    std::string inputId = "";
+    int balanceValueInput = 0;
+    int menuOptions = 0;
+    std::cout<<"For this method please provide the user personal ID\n";
+    std::cin >> inputId;
+
+    auto cursorFilter = coll.find(make_document(kvp("ID", inputId)));
+    for (auto it : cursorFilter)
+    {
+
+        printDocument(it);
+        std::cout << "Do you want to add money to this account?" << std::endl;
+        std::cout << "1. Yes\n";
+        std::cout << "2. No\n";
+        std::cin >> menuOptions;
+        switch (menuOptions)
+        {
+        case 1:
+            std::cout<<"Type value to add money\n";
+            std::cin >>balanceValueInput;
+
+              coll.update_one(it, make_document(kvp("$set", make_document(kvp("AccountBalance", balanceValueInput)))));
+
+            break;
+        case 2:
+            std::cout << "canceled operation";
+            break;
+        default:
+            throw std::runtime_error("Invalid input menu options");
+        }
+    }
 }
 
 void MDBHandler::pause()

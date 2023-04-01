@@ -67,6 +67,8 @@ private:
     void updateOneDocument(bsoncxx::document::view_or_value filterSearch);
 
     void searchAccount();
+    void deleteAccount();
+    void addBallanceToAccount();
 
     void pause();
 

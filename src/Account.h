@@ -10,7 +10,6 @@ class Account
 {
 public:
     Account();
-    Account(std::string p);
     ~Account();
 
     std::string getName();

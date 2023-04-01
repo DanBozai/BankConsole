@@ -8,10 +8,6 @@ Account::Account()
     setIBAN();
 }
 
-Account::Account(std::string p)
-{
-    setIBAN();
-}
 
 Account::~Account()
 {

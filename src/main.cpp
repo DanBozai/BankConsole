@@ -11,7 +11,6 @@ int main(int argc, char const *argv[])
         {
 
         }
-       // Test->MainMenu();
         while(Test->MainMenu()!=7);
 
         delete Test;
